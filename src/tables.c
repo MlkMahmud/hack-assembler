@@ -4,76 +4,102 @@
 
 #include "tables.h"
 
-Table* create_table(int capacity)
-{
-    Table* table = (Table*)malloc(sizeof(Table));
+Table *create_table(int capacity) {
+  Table *table = (Table *)malloc(sizeof(Table));
 
-    if (table == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
+  if (table == NULL) {
+    fprintf(stderr, "Memory allocation failed\n");
+    exit(EXIT_FAILURE);
+  }
 
-    table->entries = (Entry*)malloc(capacity * sizeof(Entry));
+  table->entries = (Entry *)malloc(capacity * sizeof(Entry));
 
-    if (table->entries == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
+  if (table->entries == NULL) {
+    fprintf(stderr, "Memory allocation failed\n");
+    exit(EXIT_FAILURE);
+  }
 
-    table->capacity = capacity;
-    table->size = 0;
+  table->capacity = capacity;
+  table->size = 0;
 
-    return table;
+  return table;
 }
 
-void append(Table* table, char* key, int* value)
-{
-    for (int index = 0; index < table->size; index++) {
-        if (strcmp(table->entries[index].key, key) == 0) {
-            table->entries[index].value = value;
-            return;
-        }
+void append(Table *table, char *key, int *value) {
+  int *value_cpy = malloc(sizeof(int));
+
+  if (value_cpy == NULL) {
+    fprintf(stderr, "Memory allocation failed\n");
+    exit(EXIT_FAILURE);
+  }
+
+  for (int index = 0; index < table->size; index++) {
+    if (strcmp(table->entries[index].key, key) == 0) {
+      *value_cpy = *value;
+      table->entries[index].value = value_cpy;
+      return;
     }
+  }
 
-    // TODO: add functionality to resize table capacity.
-    if (table->size == table->capacity) {
-        fprintf(stderr, "Table is at maximum capacity\n");
-        exit(EXIT_FAILURE);
-    }
+  // TODO: add functionality to resize table capacity.
+  if (table->size == table->capacity) {
+    fprintf(stderr, "Table is at maximum capacity\n");
+    exit(EXIT_FAILURE);
+  }
 
-    table->entries[table->size].key = strdup(key);
+  table->entries[table->size].key = strdup(key);
 
-    if (table->entries[table->size].key == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
+  if (table->entries[table->size].key == NULL) {
+    fprintf(stderr, "Memory allocation failed\n");
+    exit(EXIT_FAILURE);
+  }
 
-    table->entries[table->size].value = value;
-    table->size++;
-    return;
+  *value_cpy = *value;
+  table->entries[table->size].value = value_cpy;
+  table->size++;
+  return;
 }
 
-int* get_entry(Table* table, char* key)
-{
-    for (int index = 0; index < table->size; index++)
-        if (strcmp(table->entries[index].key, key) == 0)
-            return table->entries[index].value;
+int *get_entry(Table *table, char *key) {
+  for (int index = 0; index < table->size; index++)
+    if (strcmp(table->entries[index].key, key) == 0)
+      return table->entries[index].value;
 
-    return NULL;
+  return NULL;
 }
 
-void free_table(Table* table)
-{
-    for (int index = 0; index < table->size; index++)
-        free(table->entries[index].key);
+void free_table(Table *table) {
+  for (int index = 0; index < table->size; index++) {
+    free(table->entries[index].key);
+    free(table->entries[index].value);
+  }
 
-    free(table->entries);
-    free(table);
+  free(table->entries);
+  free(table);
 }
 
-void print_table(Table* table)
-{
-    for (int index = 0; index < table->size; index++) {
-        printf("[%s %d]\n", table->entries[index].key, *table->entries[index].value);
-    }
+Table *init_symbol_table() {
+  char *keys[] = {"R0",     "R1",  "R2",  "R3",  "R4",  "R5",   "R6",  "R7",
+                  "R8",     "R9",  "R10", "R11", "R12", "R13",  "R14", "R15",
+                  "SCREEN", "KBD", "SP",  "LCL", "ARG", "THIS", "THAT"};
+
+  int values[] = {0,  1,  2,  3,  4,     5,     6, 7, 8, 9, 10, 11,
+                  12, 13, 14, 15, 16384, 24576, 0, 1, 2, 3, 4};
+
+  int table_size = sizeof(values) / sizeof(int);
+
+  Table *table = create_table(table_size);
+
+  for (int i = 0; i < table_size; i++) {
+    append(table, keys[i], &values[i]);
+  }
+
+  return table;
+}
+
+void print_table(Table *table) {
+  for (int index = 0; index < table->size; index++) {
+    printf("[%s %d]\n", table->entries[index].key,
+           *table->entries[index].value);
+  }
 }

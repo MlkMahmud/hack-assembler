@@ -41,10 +41,14 @@ void append(Table *table, char *key, int *value) {
     }
   }
 
-  // TODO: add functionality to resize table capacity.
   if (table->size == table->capacity) {
-    fprintf(stderr, "Table is at maximum capacity\n");
-    exit(EXIT_FAILURE);
+    table->capacity = table->capacity * 2;
+    table->entries = realloc(table->entries, sizeof(Entry) * table->capacity);
+
+    if (table->entries == NULL) {
+      fprintf(stderr, "Memory allocation failed\n");
+      exit(EXIT_FAILURE);
+    }
   }
 
   table->entries[table->size].key = strdup(key);

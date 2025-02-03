@@ -1,15 +1,17 @@
 #ifndef TABLES_H
 #define TABLES_H
 
-typedef struct entry {
-  char *key;
-  int *value;
+typedef struct entry
+{
+    char *key;
+    int *value;
 } Entry;
 
-typedef struct table {
-  Entry *entries;
-  int capacity;
-  int size;
+typedef struct table
+{
+    Entry *entries;
+    int capacity;
+    int size;
 } Table;
 
 Table *create_table(int capacity);

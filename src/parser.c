@@ -2,56 +2,36 @@
 
 #include "parser.h"
 
-int get_next_instruction(FILE *src, char *buffer)
+int get_next_instruction(FILE *stream, char *buffer)
 {
     int index = 0;
     int character;
+    int has_reached_new_line = 0;
 
-    while ((byte = fgetc(src)) != EOF && character != '\n' && index < MAX_INSTRUCTION_SIZE)
+    while (!has_reached_new_line && (character = fgetc(stream)) != EOF)
     {
-        buffer[index] = (char)byte;
-        index++;
-    }
-
-    if (index == 0; &&character == EOF)
-    {
-        buffer[index] = EOF;
-        index++;
-    }
-
-    else if (index == MAX_INSTRUCTION_SIZE && character != '\n' && character != EOF)
-    {
-        int next_char;
-
-        while ((next_char = fgetc((src))) != EOF && next_char != '\n')
-            ;
+        if (character == '\n')
+        {
+            has_reached_new_line = 1;
+        }
+        else if (index < MAX_INSTRUCTION_SIZE - 1)
+        {
+            buffer[index] = (char)character;
+            index++;
+        }
     }
 
     buffer[index] = '\0';
+
+    if (index == 0 && character == EOF)
+    {
+        return -1;
+    }
+
     return 0;
 }
 
-void populate_symbol_table(FILE *src, Table *table)
+void populate_symbol_table(FILE *stream, Table *table)
 {
-    int line_num = 0;
-
-    /*
-      char line[MAX_INSTRUCTION_SIZE];
-      get_next_instruction(src, line);
-
-      while (line != EOF) {
-        if (line is an A OR D instruction) {
-          line_num++;
-        } else if (line is a label) {
-          append(table, label, line_num);
-        } else if (line is a comment) {
-          do nothing
-        } else {
-          it's invalid close file ptr
-          and exit
-        }
-      }
-
-    */
     return;
 };

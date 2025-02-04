@@ -3,36 +3,57 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "parser.h"
 #include "tables.h"
 
-bool is_asm_file(char *filename);
+bool has_extension(char *filename, char *extension);
 
-int main(int argc, char *argv[]) {
-  if (argc != 2 || !is_asm_file(argv[1])) {
-    fprintf(
-        stderr,
-        "usage: %s asm_file\n asm_file: an absolute or relative path to a .asm "
-        "file.\n",
-        argv[0]);
-    return 1;
-  }
+int main(int argc, char *argv[])
+{
+    char buffer[MAX_INSTRUCTION_SIZE];
+    int status;
+    FILE *stream;
+    Table *symbol_table;
 
-  Table *symbol_table = init_symbol_table();
-  print_table(symbol_table);
-  free_table(symbol_table);
-  return 0;
+    if (argc != 2 || !has_extension(argv[1], ".asm"))
+    {
+        fprintf(stderr,
+                "usage: %s asm_file\n asm_file: an absolute or relative path to a .asm "
+                "file.\n",
+                argv[0]);
+        return 1;
+    }
+
+    if ((stream = fopen(argv[1], "r")) == NULL)
+    {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    symbol_table = init_symbol_table();
+
+    while ((status = get_next_instruction(stream, buffer)) != -1)
+    {
+        printf("%s\n", buffer);
+        strcpy(buffer, "");
+    }
+
+    fclose(stream);
+    free_table(symbol_table);
+
+    return 0;
 }
 
-bool is_asm_file(char *filename) {
-  if (!filename)
-    return false;
+bool has_extension(char *filename, char *extension)
+{
+    if (!filename)
+        return false;
 
-  char extension[] = ".asm";
-  size_t extension_len = strlen(extension);
-  size_t filenmame_len = strlen(filename);
+    size_t extension_len = strlen(extension);
+    size_t filenmame_len = strlen(filename);
 
-  if (extension_len > filenmame_len)
-    return false;
+    if (extension_len > filenmame_len)
+        return false;
 
-  return strcmp(filename + (filenmame_len - extension_len), extension) == 0;
+    return strcmp(filename + (filenmame_len - extension_len), extension) == 0;
 }

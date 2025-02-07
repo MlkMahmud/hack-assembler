@@ -1,6 +1,3 @@
-.vscode/
-main
-
 # Prerequisites
 *.d
 
@@ -53,3 +50,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+**/*.asm
+.vscode/
+main

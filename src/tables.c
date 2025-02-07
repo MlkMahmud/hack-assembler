@@ -25,7 +25,7 @@ Table *create_table(int capacity) {
   return table;
 }
 
-void append(Table *table, char *key, int *value) {
+void append_symbol(Table *table, char *key, int *value) {
   int *value_cpy = malloc(sizeof(int));
 
   if (value_cpy == NULL) {
@@ -95,7 +95,7 @@ Table *init_symbol_table() {
   Table *table = create_table(table_size);
 
   for (int i = 0; i < table_size; i++) {
-    append(table, keys[i], &values[i]);
+    append_symbol(table, keys[i], &values[i]);
   }
 
   return table;

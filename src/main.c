@@ -10,8 +10,6 @@ bool has_extension(char *filename, char *extension);
 
 int main(int argc, char *argv[])
 {
-    char buffer[MAX_INSTRUCTION_SIZE];
-    int status;
     FILE *stream;
     Table *symbol_table;
 
@@ -31,13 +29,9 @@ int main(int argc, char *argv[])
     }
 
     symbol_table = init_symbol_table();
+    populate_symbol_table(stream, symbol_table);
 
-    while ((status = get_next_instruction(stream, buffer)) != -1)
-    {
-        printf("%s\n", buffer);
-        strcpy(buffer, "");
-    }
-
+    print_table(symbol_table);
     fclose(stream);
     free_table(symbol_table);
 

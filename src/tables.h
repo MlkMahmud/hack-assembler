@@ -16,7 +16,7 @@ typedef struct table
 
 Table *create_table(int capacity);
 
-void append(Table *table, char *key, int *value);
+void append_symbol(Table *table, char *key, int *value);
 
 int *get_entry(Table *table, char *key);
 

@@ -19,13 +19,16 @@ typedef struct
 {
     InstructionType type;
     char *label;
+    char *value;
 } Instruction;
 
 int get_next_instruction(FILE *stream, char *buffer);
 
+bool is_a_instruction(char *buffer, Instruction *instr);
+
 bool is_comment_or_whitespace(char *buffer);
 
-bool is_label_declaration(char *buffer, Instruction *instruction);
+bool is_label_declaration(char *buffer, Instruction *instr);
 
 void populate_symbol_table(FILE *stream, Table *symbol_table);
 

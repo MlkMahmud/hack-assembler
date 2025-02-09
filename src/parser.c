@@ -35,6 +35,42 @@ int get_next_instruction(FILE *stream, char *buffer)
     return 0;
 }
 
+bool is_a_instruction(char *buffer, Instruction *instr)
+{
+    const char *pattern = "^\\s*@(\\w+([.$]\\w+)*)(\\s\\/\\/\\s*[[:print:]]*\\s*)?$";
+    regex_t re;
+    regmatch_t match[2];
+
+    if (regcomp(&re, pattern, REG_EXTENDED) != 0)
+    {
+        perror("failed to compile regex expression");
+        exit(EXIT_FAILURE);
+    }
+
+    if (regexec(&re, buffer, 2, match, 0) != 0)
+    {
+        regfree(&re);
+        return false;
+    }
+
+    size_t len = match[1].rm_eo - match[1].rm_so;
+    instr->value = (char *)malloc(len + 1);
+
+    if (instr->value == NULL)
+    {
+        regfree(&re);
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    instr->type = A_INSTRUCTION;
+    strncpy(instr->value, buffer + match[1].rm_so, len);
+    instr->value[len] = '\0';
+
+    regfree(&re);
+    return true;
+}
+
 bool is_comment_or_whitespace(char *buffer)
 {
     const char *pattern = "(^\\s*$)|(^\\s*\\/\\/\\s*[[:print:]]*\\s*$)";
@@ -57,9 +93,10 @@ bool is_comment_or_whitespace(char *buffer)
     return true;
 }
 
-bool is_label_declaration(char *buffer, Instruction *instruction)
+bool is_label_declaration(char *buffer, Instruction *instr)
 {
-    const char *pattern = "^\\s*\\(\\s*([a-zA-Z_][a-zA-Z0-9_]+([.$][a-zA-Z0-9_]+)*)\\s*\\)(\\s\\/\\/[[:print:]]+)?$";
+    const char *pattern =
+        "^\\s*\\(\\s*([a-zA-Z_][a-zA-Z0-9_]+([.$][a-zA-Z0-9_]+)*)\\s*\\)(\\s\\/\\/\\s*[[:print:]]*\\s*)?$";
     regex_t re;
     regmatch_t match[2];
 
@@ -75,19 +112,19 @@ bool is_label_declaration(char *buffer, Instruction *instruction)
         return false;
     }
 
-    size_t label_len = match[1].rm_eo - match[1].rm_so;
-    instruction->label = (char *)malloc(label_len + 1);
+    size_t len = match[1].rm_eo - match[1].rm_so;
+    instr->label = (char *)malloc(len + 1);
 
-    if (instruction->label == NULL)
+    if (instr->label == NULL)
     {
         regfree(&re);
         fprintf(stderr, "Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
 
-    instruction->type = LABEL_DECLARATION;
-    strncpy(instruction->label, buffer + match[1].rm_so, label_len);
-    instruction->label[label_len] = '\0';
+    instr->type = LABEL_DECLARATION;
+    strncpy(instr->label, buffer + match[1].rm_so, len);
+    instr->label[len] = '\0';
 
     regfree(&re);
     return true;
@@ -102,8 +139,12 @@ void populate_symbol_table(FILE *stream, Table *table)
 
     while ((status = get_next_instruction(stream, buffer)) != -1)
     {
-
-        if (is_label_declaration(buffer, instr))
+        if (is_a_instruction(buffer, instr))
+        {
+            printf("A INSTR: %s\n", instr->value);
+            free(instr->value);
+        }
+        else if (is_label_declaration(buffer, instr))
         {
             // TOOD: Replace symbol values with real values.
             int symbol_value = label_counter + 1;

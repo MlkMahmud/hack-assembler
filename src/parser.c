@@ -71,6 +71,66 @@ bool is_a_instruction(char *buffer, Instruction *instr)
     return true;
 }
 
+bool is_c_instruction_without_dest(char *buffer, Instruction *instr)
+{
+    int jump_instruction_len = 3;
+
+    const char *pattern = "^\\s*(0|1|-1|[-!]?[ADM]|A[-+|&][1DM]|D[-+|&][1AM]|M[-+|&][1DA])(\\s*;"
+                          "\\s*J(LT|EQ|NE|GT|LE|GE|MP))?(\\s\\/\\/\\s*[[:print:]]*\\s*)?$";
+
+    regex_t re;
+    regmatch_t match[3];
+
+    if (regcomp(&re, pattern, REG_EXTENDED) != 0)
+    {
+        perror("failed to compile regex expression");
+        exit(EXIT_FAILURE);
+    }
+
+    if (regexec(&re, buffer, 3, match, 0) != 0)
+    {
+        regfree(&re);
+        return false;
+    }
+
+    size_t comp_len = match[1].rm_eo - match[1].rm_so;
+    size_t jmp_len = match[2].rm_eo - match[2].rm_so;
+
+    instr->comp = (char *)malloc(comp_len + 1);
+
+    if (instr->comp == NULL)
+    {
+        regfree(&re);
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    strncpy(instr->comp, buffer + match[1].rm_so, comp_len);
+    instr->comp[comp_len] = '\0';
+
+    if (!jmp_len)
+    {
+        instr->jmp = NULL;
+        regfree(&re);
+        return true;
+    }
+
+    instr->jmp = (char *)malloc(jump_instruction_len + 1);
+
+    if (instr->comp == NULL)
+    {
+        regfree(&re);
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    strncpy(instr->jmp, buffer + (match[2].rm_eo - jump_instruction_len), jump_instruction_len);
+    instr->jmp[jump_instruction_len] = '\0';
+
+    regfree(&re);
+    return true;
+}
+
 bool is_comment_or_whitespace(char *buffer)
 {
     const char *pattern = "(^\\s*$)|(^\\s*\\/\\/\\s*[[:print:]]*\\s*$)";
@@ -134,7 +194,7 @@ void populate_symbol_table(FILE *stream, Table *table)
 {
     char buffer[MAX_INSTRUCTION_SIZE];
     int status;
-    int label_counter = 16;
+    int line_number = 0;
     Instruction *instr = (Instruction *)malloc(sizeof(Instruction));
 
     while ((status = get_next_instruction(stream, buffer)) != -1)
@@ -142,7 +202,20 @@ void populate_symbol_table(FILE *stream, Table *table)
         if (is_a_instruction(buffer, instr))
         {
             printf("A INSTR: %s\n", instr->value);
+            line_number++;
+
             free(instr->value);
+        }
+        else if (is_c_instruction_without_dest(buffer, instr))
+        {
+            printf("Comp: %s\n", instr->comp);
+            free(instr->comp);
+
+            if (instr->jmp)
+            {
+                printf("JMP: %s\n", instr->jmp);
+                free(instr->jmp);
+            }
         }
         else if (is_label_declaration(buffer, instr))
         {

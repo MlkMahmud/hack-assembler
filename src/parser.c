@@ -35,6 +35,28 @@ int get_next_instruction(FILE *stream, char *buffer)
     return 0;
 }
 
+bool is_comment_or_whitespace(char *buffer)
+{
+    const char *pattern = "(^\\s*$)|(^\\s*\\/\\/\\s*[[:print:]]*\\s*$)";
+    regex_t re;
+    regmatch_t match[2];
+
+    if (regcomp(&re, pattern, REG_EXTENDED) != 0)
+    {
+        perror("failed to compile regex expression");
+        exit(EXIT_FAILURE);
+    }
+
+    if (regexec(&re, buffer, 2, match, 0) != 0)
+    {
+        regfree(&re);
+        return false;
+    }
+
+    regfree(&re);
+    return true;
+}
+
 bool is_label_declaration(char *buffer, Instruction *instruction)
 {
     const char *pattern = "^\\s*\\(\\s*([a-zA-Z_][a-zA-Z0-9_]+([.$][a-zA-Z0-9_]+)*)\\s*\\)(\\s\\/\\/[[:print:]]+)?$";
@@ -90,8 +112,13 @@ void populate_symbol_table(FILE *stream, Table *table)
             label_counter++;
 
             free(instr->label);
-            buffer[0] = '\0';
         }
+        else if (is_comment_or_whitespace(buffer))
+        {
+            continue;
+        }
+
+        buffer[0] = '\0';
     }
 
     free(instr);

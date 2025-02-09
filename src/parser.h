@@ -23,6 +23,8 @@ typedef struct
 
 int get_next_instruction(FILE *stream, char *buffer);
 
+bool is_comment_or_whitespace(char *buffer);
+
 bool is_label_declaration(char *buffer, Instruction *instruction);
 
 void populate_symbol_table(FILE *stream, Table *symbol_table);

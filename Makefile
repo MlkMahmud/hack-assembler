@@ -4,7 +4,7 @@ CC = gcc
 
 CFLAGS = -Wall -Wextra -g
 
-SOURCES = src/main.c src/parser.c src/tables.c
+SOURCES = src/main.c src/parser.c src/tables.c src/utils.c
 
 OBJECTS = $(SOURCES:.c=.o)
 

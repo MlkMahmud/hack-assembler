@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "utils.h"
@@ -12,5 +13,5 @@ void *safe_malloc(size_t size)
         exit(EXIT_FAILURE);
     }
 
-    return p;
+    return addr;
 }

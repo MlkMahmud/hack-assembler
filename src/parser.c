@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "parser.h"
+#include "utils.h"
 
 int get_next_instruction(FILE *stream, char *buffer)
 {
@@ -37,7 +38,7 @@ int get_next_instruction(FILE *stream, char *buffer)
 
 bool is_a_instruction(char *buffer, Instruction *instr)
 {
-    const char *pattern = "^\\s*@(\\w+([.$]\\w+)*)(\\s\\/\\/\\s*[[:print:]]*\\s*)?$";
+    const char *pattern = "^\\s*@(\\w+([.$]\\w+)*)(\\s\\/\\/[[:print:]]*)?$";
     regex_t re;
     regmatch_t match[2];
 
@@ -53,33 +54,25 @@ bool is_a_instruction(char *buffer, Instruction *instr)
         return false;
     }
 
+    regfree(&re);
     size_t len = match[1].rm_eo - match[1].rm_so;
-    instr->value = (char *)malloc(len + 1);
 
-    if (instr->value == NULL)
-    {
-        regfree(&re);
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
-
+    instr->value = (char *)safe_malloc(len + 1);
     instr->type = A_INSTRUCTION;
+
     strncpy(instr->value, buffer + match[1].rm_so, len);
     instr->value[len] = '\0';
 
-    regfree(&re);
     return true;
 }
 
-bool is_c_instruction_without_dest(char *buffer, Instruction *instr)
+bool is_c_instruction(char *buffer, Instruction *instr)
 {
-    int jump_instruction_len = 3;
-
-    const char *pattern = "^\\s*(0|1|-1|[-!]?[ADM]|A[-+|&][1DM]|D[-+|&][1AM]|M[-+|&][1DA])(\\s*;"
-                          "\\s*J(LT|EQ|NE|GT|LE|GE|MP))?(\\s\\/\\/\\s*[[:print:]]*\\s*)?$";
+    const char *pattern = "^\\s*((M|D|MD|A|AM|AD|AMD)\\s*=\\s*)?(0|1|-1|[-!]?[ADM]|A[-+|&][1DM]|D[-+|&][1AM]|M[-+|&]["
+                          "1DA])(\\s*;\\s*(JLT|JEQ|JNE|JGT|JLE|JGE|JMP))?(\\s+\\/\\/[[:print:]]*)?$";
 
     regex_t re;
-    regmatch_t match[3];
+    regmatch_t match[6];
 
     if (regcomp(&re, pattern, REG_EXTENDED) != 0)
     {
@@ -87,53 +80,44 @@ bool is_c_instruction_without_dest(char *buffer, Instruction *instr)
         exit(EXIT_FAILURE);
     }
 
-    if (regexec(&re, buffer, 3, match, 0) != 0)
+    if (regexec(&re, buffer, 6, match, 0) != 0)
     {
         regfree(&re);
         return false;
     }
 
-    size_t comp_len = match[1].rm_eo - match[1].rm_so;
-    size_t jmp_len = match[2].rm_eo - match[2].rm_so;
-
-    instr->comp = (char *)malloc(comp_len + 1);
-
-    if (instr->comp == NULL)
-    {
-        regfree(&re);
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    strncpy(instr->comp, buffer + match[1].rm_so, comp_len);
-    instr->comp[comp_len] = '\0';
-
-    if (!jmp_len)
-    {
-        instr->jmp = NULL;
-        regfree(&re);
-        return true;
-    }
-
-    instr->jmp = (char *)malloc(jump_instruction_len + 1);
-
-    if (instr->comp == NULL)
-    {
-        regfree(&re);
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    strncpy(instr->jmp, buffer + (match[2].rm_eo - jump_instruction_len), jump_instruction_len);
-    instr->jmp[jump_instruction_len] = '\0';
-
     regfree(&re);
+
+    size_t comp_len = match[3].rm_eo - match[3].rm_so;
+    size_t dest_len = match[2].rm_eo - match[2].rm_so;
+    size_t jmp_len = match[5].rm_eo - match[5].rm_so;
+
+    instr->comp = (char *)safe_malloc(comp_len + 1);
+    strncpy(instr->comp, buffer + match[3].rm_so, comp_len);
+    instr->comp[comp_len] = '\0';
+    instr->dest = NULL;
+    instr->jmp = NULL;
+
+    if (dest_len)
+    {
+        instr->dest = (char *)safe_malloc(dest_len + 1);
+        strncpy(instr->dest, buffer + match[2].rm_so, dest_len);
+        instr->dest[dest_len] = '\0';
+    }
+
+    if (jmp_len)
+    {
+        instr->jmp = (char *)safe_malloc(jmp_len + 1);
+        strncpy(instr->jmp, buffer + match[5].rm_so, jmp_len);
+        instr->jmp[jmp_len] = '\0';
+    }
+
     return true;
 }
 
 bool is_comment_or_whitespace(char *buffer)
 {
-    const char *pattern = "(^\\s*$)|(^\\s*\\/\\/\\s*[[:print:]]*\\s*$)";
+    const char *pattern = "(^\\s*$|^\\s*\\/\\/[[:print:]]*$)";
     regex_t re;
     regmatch_t match[2];
 
@@ -155,8 +139,7 @@ bool is_comment_or_whitespace(char *buffer)
 
 bool is_label_declaration(char *buffer, Instruction *instr)
 {
-    const char *pattern =
-        "^\\s*\\(\\s*([a-zA-Z_][a-zA-Z0-9_]+([.$][a-zA-Z0-9_]+)*)\\s*\\)(\\s\\/\\/\\s*[[:print:]]*\\s*)?$";
+    const char *pattern = "^\\s*\\(\\s*([a-zA-Z_][a-zA-Z0-9_]+([.$][a-zA-Z0-9_]+)*)\\s*\\)(\\s+\\/\\/[[:print:]]*)?$";
     regex_t re;
     regmatch_t match[2];
 
@@ -172,21 +155,15 @@ bool is_label_declaration(char *buffer, Instruction *instr)
         return false;
     }
 
+    regfree(&re);
     size_t len = match[1].rm_eo - match[1].rm_so;
-    instr->label = (char *)malloc(len + 1);
 
-    if (instr->label == NULL)
-    {
-        regfree(&re);
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
-
+    instr->label = (char *)safe_malloc(len + 1);
     instr->type = LABEL_DECLARATION;
+
     strncpy(instr->label, buffer + match[1].rm_so, len);
     instr->label[len] = '\0';
 
-    regfree(&re);
     return true;
 }
 
@@ -201,35 +178,37 @@ void populate_symbol_table(FILE *stream, Table *table)
     {
         if (is_a_instruction(buffer, instr))
         {
-            printf("A INSTR: %s\n", instr->value);
-            line_number++;
-
             free(instr->value);
+            line_number++;
         }
-        else if (is_c_instruction_without_dest(buffer, instr))
+        else if (is_c_instruction(buffer, instr))
         {
-            printf("Comp: %s\n", instr->comp);
-            free(instr->comp);
+            if (instr->dest)
+                free(instr->dest);
 
             if (instr->jmp)
-            {
-                printf("JMP: %s\n", instr->jmp);
                 free(instr->jmp);
-            }
+
+            free(instr->comp);
+            line_number++;
         }
         else if (is_label_declaration(buffer, instr))
         {
-            // TOOD: Replace symbol values with real values.
-            int symbol_value = label_counter + 1;
 
-            append_symbol(table, instr->label, &symbol_value);
-            label_counter++;
+            append_symbol(table, instr->label, line_number);
+            line_number++;
 
             free(instr->label);
         }
         else if (is_comment_or_whitespace(buffer))
         {
             continue;
+        }
+        else
+        {
+            free(instr);
+            fprintf(stderr, "SyntaxError: invalid syntax (%s)\n", buffer);
+            exit(EXIT_FAILURE);
         }
 
         buffer[0] = '\0';

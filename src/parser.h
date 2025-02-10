@@ -19,6 +19,7 @@ typedef struct
 {
     InstructionType type;
     char *comp;
+    char *dest;
     char *jmp;
     char *label;
     char *value;
@@ -28,7 +29,7 @@ int get_next_instruction(FILE *stream, char *buffer);
 
 bool is_a_instruction(char *buffer, Instruction *instr);
 
-bool is_c_instruction_without_dest(char *buffer, Instruction *instr);
+bool is_c_instruction(char *buffer, Instruction *instr);
 
 bool is_comment_or_whitespace(char *buffer);
 

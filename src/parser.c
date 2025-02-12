@@ -38,7 +38,7 @@ int get_next_instruction(FILE *stream, char *buffer)
 
 bool is_a_instruction(char *buffer, Instruction *instr)
 {
-    const char *pattern = "^\\s*@(\\w+([.$]\\w+)*)(\\s\\/\\/[[:print:]]*)?$";
+    const char *pattern = "^[[:space:]]*@([[:alnum:]_]+([.$][[:alnum:]_]+)*)([[:space:]]+\\/\\/[[:print:]]*)?$";
     regex_t re;
     regmatch_t match[2];
 
@@ -68,8 +68,8 @@ bool is_a_instruction(char *buffer, Instruction *instr)
 
 bool is_c_instruction(char *buffer, Instruction *instr)
 {
-    const char *pattern = "^\\s*((M|D|MD|A|AM|AD|AMD)\\s*=\\s*)?(0|1|-1|[-!]?[ADM]|A[-+|&][1DM]|D[-+|&][1AM]|M[-+|&]["
-                          "1DA])(\\s*;\\s*(JLT|JEQ|JNE|JGT|JLE|JGE|JMP))?(\\s+\\/\\/[[:print:]]*)?$";
+    const char *pattern = "^[[:space:]]*((M|D|MD|A|AM|AD|AMD)[[:space:]]*=[[:space:]]*)?(0|1|-1|[-!]?[ADM]|A[-+|&][1DM]|D[-+|&][1AM]|M[-+|&]["
+                          "1DA])([[:space:]]*;[[:space:]]*(JLT|JEQ|JNE|JGT|JLE|JGE|JMP))?([[:space:]]+\\/\\/[[:print:]]*)?$";
 
     regex_t re;
     regmatch_t match[6];
@@ -118,7 +118,7 @@ bool is_c_instruction(char *buffer, Instruction *instr)
 
 bool is_comment_or_whitespace(char *buffer)
 {
-    const char *pattern = "(^\\s*$|^\\s*\\/\\/[[:print:]]*$)";
+    const char *pattern = "(^[[:space:]]*$|^[[:space:]]*\\/\\/[[:print:]]*$)";
     regex_t re;
     regmatch_t match[2];
 
@@ -140,7 +140,7 @@ bool is_comment_or_whitespace(char *buffer)
 
 bool is_label_declaration(char *buffer, Instruction *instr)
 {
-    const char *pattern = "^\\s*\\(\\s*([a-zA-Z_][a-zA-Z0-9_]+([.$][a-zA-Z0-9_]+)*)\\s*\\)(\\s+\\/\\/[[:print:]]*)?$";
+    const char *pattern = "^[[:space:]]*\\([[:space:]]*([[:alpha:]_][[:alnum:]_]+([.$][[:alnum:]_]+)*)[[:space:]]*\\)([[:space:]]+\\/\\/[[:print:]]*)?$";
     regex_t re;
     regmatch_t match[2];
 
@@ -173,6 +173,7 @@ void populate_symbol_table(FILE *stream, Table *table)
     char buffer[MAX_INSTRUCTION_SIZE];
     int status;
     int current_instr_address = 0;
+    int line_number = 1;
     Instruction *instr = (Instruction *)malloc(sizeof(Instruction));
 
     while ((status = get_next_instruction(stream, buffer)) != -1)
@@ -202,16 +203,17 @@ void populate_symbol_table(FILE *stream, Table *table)
             free(instr->label);
         }
         else if (is_comment_or_whitespace(buffer))
-        {
+        {   
+            line_number++;
             continue;
         }
         else
         {
             free(instr);
-            fprintf(stderr, "SyntaxError: invalid syntax (%s)\n", buffer);
+            fprintf(stderr, "SyntaxError: invalid syntax (%s) on line %d\n", buffer, line_number);
             exit(EXIT_FAILURE);
         }
-
+        line_number++;
         buffer[0] = '\0';
     }
 

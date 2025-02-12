@@ -92,6 +92,7 @@ bool is_c_instruction(char *buffer, Instruction *instr)
     size_t dest_len = match[2].rm_eo - match[2].rm_so;
     size_t jmp_len = match[5].rm_eo - match[5].rm_so;
 
+    instr->type = C_INSTRUCTION;
     instr->comp = (char *)safe_malloc(comp_len + 1);
     strncpy(instr->comp, buffer + match[3].rm_so, comp_len);
     instr->comp[comp_len] = '\0';
@@ -171,7 +172,7 @@ void populate_symbol_table(FILE *stream, Table *table)
 {
     char buffer[MAX_INSTRUCTION_SIZE];
     int status;
-    int line_number = 0;
+    int current_instr_address = 0;
     Instruction *instr = (Instruction *)malloc(sizeof(Instruction));
 
     while ((status = get_next_instruction(stream, buffer)) != -1)
@@ -179,7 +180,7 @@ void populate_symbol_table(FILE *stream, Table *table)
         if (is_a_instruction(buffer, instr))
         {
             free(instr->value);
-            line_number++;
+            current_instr_address++;
         }
         else if (is_c_instruction(buffer, instr))
         {
@@ -190,13 +191,13 @@ void populate_symbol_table(FILE *stream, Table *table)
                 free(instr->jmp);
 
             free(instr->comp);
-            line_number++;
+            current_instr_address++;
         }
         else if (is_label_declaration(buffer, instr))
         {
 
-            append_symbol(table, instr->label, line_number);
-            line_number++;
+            append_symbol(table, instr->label, current_instr_address);
+            current_instr_address++;
 
             free(instr->label);
         }

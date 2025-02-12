@@ -198,8 +198,6 @@ void populate_symbol_table(FILE *stream, Table *table)
         {
 
             append_symbol(table, instr->label, current_instr_address);
-            current_instr_address++;
-
             free(instr->label);
         }
         else if (is_comment_or_whitespace(buffer))

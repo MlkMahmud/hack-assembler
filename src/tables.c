@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "parser.h"
 #include "tables.h"
 #include "utils.h"
 
@@ -89,6 +90,57 @@ Table *init_symbol_table()
 
     return table;
 }
+
+void populate_symbol_table(FILE *stream, Table *table)
+{
+    char buffer[MAX_INSTRUCTION_SIZE];
+    int status;
+    int current_instr_address = 0;
+    int line_number = 1;
+    Instruction *instr = (Instruction *)safe_malloc(sizeof(Instruction));
+
+    while ((status = get_next_instruction(stream, buffer)) != -1)
+    {
+        if (parse_a_command(buffer, instr) == 0)
+        {
+            free(instr->value);
+            current_instr_address++;
+        }
+        else if (parse_c_command(buffer, instr) == 0)
+        {
+            if (instr->dest)
+                free(instr->dest);
+
+            if (instr->jmp)
+                free(instr->jmp);
+
+            free(instr->comp);
+            current_instr_address++;
+        }
+        else if (parse_label_declaration(buffer, instr) == 0)
+        {
+
+            append_symbol(table, instr->label, current_instr_address);
+            free(instr->label);
+        }
+        else if (parse_comment_or_whitespace(buffer) == 0)
+        {
+            line_number++;
+            continue;
+        }
+        else
+        {
+            free(instr);
+            fprintf(stderr, "SyntaxError: invalid syntax (%s) on line %d\n", buffer, line_number);
+            exit(EXIT_FAILURE);
+        }
+        line_number++;
+        buffer[0] = '\0';
+    }
+
+    free(instr);
+    return;
+};
 
 void print_table(Table *table)
 {

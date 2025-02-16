@@ -24,6 +24,8 @@ void free_table(Table *table);
 
 Table *init_symbol_table();
 
+void populate_symbol_table(FILE *stream, Table *symbol_table);
+
 void print_table(Table *table);
 
 #endif

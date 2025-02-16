@@ -174,7 +174,7 @@ void populate_symbol_table(FILE *stream, Table *table)
     int status;
     int current_instr_address = 0;
     int line_number = 1;
-    Instruction *instr = (Instruction *)malloc(sizeof(Instruction));
+    Instruction *instr = (Instruction *)safe_malloc(sizeof(Instruction));
 
     while ((status = get_next_instruction(stream, buffer)) != -1)
     {

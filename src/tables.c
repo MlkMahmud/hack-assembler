@@ -7,22 +7,9 @@
 
 Table *create_table(int capacity)
 {
-    Table *table = (Table *)malloc(sizeof(Table));
+    Table *table = (Table *)safe_malloc(sizeof(Table));
 
-    if (table == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    table->entries = (Entry *)malloc(capacity * sizeof(Entry));
-
-    if (table->entries == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
-
+    table->entries = (Entry *)safe_malloc(capacity * sizeof(Entry));
     table->capacity = capacity;
     table->size = 0;
 

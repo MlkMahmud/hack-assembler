@@ -22,6 +22,7 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
                 long value = 0;
                 num_str_to_decimal(instr->value, &value);
                 fprintf(out_stream, "%016lb\n", value);
+                free(instr->value);
                 continue;
             }
 
@@ -39,10 +40,19 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
         }
         else if (parse_c_command(buffer, instr) == 0)
         {
+            if (instr->dest)
+                free(instr->dest);
+
+            if (instr->jmp)
+                free(instr->jmp);
+
+            free(instr->comp);
+
             continue;
         }
         else if (parse_label_declaration(buffer, instr) == 0)
         {
+            free(instr->label);
             continue;
         }
         else if (parse_comment_or_whitespace(buffer) == 0)

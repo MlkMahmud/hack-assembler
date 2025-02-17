@@ -14,6 +14,7 @@ bool has_extension(char *filename, char *extension);
 
 int main(int argc, char *argv[])
 {
+    char *hack_filename;
     FILE *src_stream;
     FILE *out_stream;
     Table *symbol_table;
@@ -36,7 +37,11 @@ int main(int argc, char *argv[])
     symbol_table = init_symbol_table();
     populate_symbol_table(src_stream, symbol_table);
 
-    char *hack_filename = generate_hack_filename(argv[1]);
+    if ((hack_filename = generate_hack_filename(argv[1])) == NULL)
+    {
+        fprintf(stderr, "Failed to generate '.hack' file for src: %s\n", argv[1]);
+        exit(EXIT_FAILURE);
+    };
 
     if ((out_stream = fopen(hack_filename, "w")) == NULL)
     {
@@ -56,18 +61,29 @@ int main(int argc, char *argv[])
 
 char *generate_hack_filename(char *asm_filename)
 {
-    const int ASM_EXT_LEN = strlen(".asm");
-    const char HACK_FILE_EXT[] = ".hack";
+    if (asm_filename == NULL)
+    {
+        return NULL;
+    }
+
+    if (!has_extension(asm_filename, ".asm"))
+    {
+        fprintf(stderr, "Filename '%s' does not end with '.asm'\n", asm_filename);
+        exit(EXIT_FAILURE);
+    }
+
+    const char asm_ext[] = ".asm";
+    const char hack_ext[] = ".hack";
 
     size_t asm_filename_len = strlen(asm_filename);
-    //  The ".hack" extension contains four characters while the ".asm" extension has three.
-    //  We allocate one (1) extra byte to account for this difference, and another extra byte for the NULL terminator.
-    char *hack_filename = safe_malloc(asm_filename_len + sizeof(char) + 1);
+    size_t asm_ext_len = strlen(asm_ext);
+    size_t hack_ext_len = strlen(hack_ext);
 
-    // copy everything except the last (4) bytes ".asm"
-    strncpy(hack_filename, asm_filename, asm_filename_len - ASM_EXT_LEN);
-    hack_filename[asm_filename_len - ASM_EXT_LEN] = '\0';
-    strcat(hack_filename, HACK_FILE_EXT);
+    char *hack_filename = safe_malloc((asm_filename_len - asm_ext_len) + (hack_ext_len + 1));
+
+    strncpy(hack_filename, asm_filename, asm_filename_len - asm_ext_len);
+    hack_filename[asm_filename_len - asm_ext_len] = '\0';
+    strcat(hack_filename, hack_ext);
 
     return hack_filename;
 }

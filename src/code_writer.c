@@ -22,12 +22,15 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
                 long value = 0;
                 num_str_to_decimal(instr->value, &value);
 
-                if (value > HACK_MAX_INT) {
-                    fprintf(stderr, "Error: The input value %ld exceeds the maximum allowed limit of %d. (Error at line %d)\n", value, HACK_MAX_INT, line_number);
+                if (value > HACK_MAX_INT)
+                {
+                    fprintf(stderr,
+                            "Error: The input value %ld exceeds the maximum allowed limit of %d. (Error at line %d)\n",
+                            value, HACK_MAX_INT, line_number);
                     exit(EXIT_FAILURE);
                 }
 
-                fprintf(out_stream, "%016lb\n", value);
+                print_dec_as_binary(out_stream, value, WORD_SIZE);
                 free(instr->value);
                 continue;
             }
@@ -41,7 +44,7 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
             }
 
             symbol_value = get_entry(symbol_table, instr->value);
-            fprintf(out_stream, "%016b\n", *symbol_value);
+            print_dec_as_binary(out_stream, *instr->value, WORD_SIZE);
             free(instr->value);
         }
         else if (parse_c_command(buffer, instr) == 0)

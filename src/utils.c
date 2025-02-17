@@ -22,6 +22,7 @@ bool is_num_str(char *str)
 
     return true;
 }
+
 void num_str_to_decimal(char *num_str, long *num)
 {
     char *endptr;
@@ -46,6 +47,16 @@ void num_str_to_decimal(char *num_str, long *num)
         fprintf(stderr, "Further characters after number: \"%s\"\n", endptr);
         exit(EXIT_FAILURE);
     }
+}
+
+void print_dec_as_binary(FILE *stream, long num, size_t word_size)
+{
+    for (int i = word_size - 1; i >= 0; i--)
+    {
+        fprintf(stream, "%ld", (num >> i) & 1);
+    }
+
+    fprintf(stream, "\n");
 }
 
 void *safe_malloc(size_t size)

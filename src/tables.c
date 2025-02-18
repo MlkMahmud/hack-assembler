@@ -72,6 +72,26 @@ void free_table(Table *table)
     free(table);
 }
 
+Table *init_comp_table() { 
+    Table *comp_table = safe_malloc(sizeof(Table));
+    
+    char entries[][2][7] = {
+        {"0", "0101010"}, {"1", "0111111"}, {"-1", "0111010"}, {"D", "0001100"},
+        {"A", "0110000"}, {"M", "1110000"}, {"!D", "0001101"}, {"!A", "0110001"},
+        {"!M", "1110001"}, {"-D", "0001111"}, {"-A", "0110011"}, {"-M", "1110011"},
+        {"D+1", "0011111"}, {"A+1", "0110111"}, {"M+1", "1110111"}, {"D-1", "0001110"},
+        {"A-1", "0110010"}, {"M-1", "1110010"}, {"D+A", "0000010"}, {"A+D", "0000010"},
+        {"D+M", "1000010"}, {"M+D", "1000010"}, {"D-A", "0010011"}, {"D-M", "1010011"},
+        {"A-D", "0000111"}, {"M-D", "1000111"}, {"D&A", "0000000"}, {"A&D", "0000000"},
+        {"D&M", "1000000"}, {"M&D", "1000000"}, {"D|A", "0010101"}, {"A|D", "0010101"},
+        {"D|M", "1010101"}, {"M|D", "1010101"}
+    };
+
+    printf("Table: %s\n", entries[0][0]);
+    return comp_table;
+    
+}
+
 Table *init_symbol_table()
 {
     char *keys[] = {"R0",  "R1",  "R2",  "R3",  "R4",     "R5",  "R6", "R7",  "R8",  "R9",   "R10", "R11",
@@ -79,11 +99,11 @@ Table *init_symbol_table()
 
     int values[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16384, 24576, 0, 1, 2, 3, 4};
 
-    int table_size = sizeof(values) / sizeof(int);
+    int capacity = sizeof(values) / sizeof(int);
 
-    Table *table = create_table(table_size);
+    Table *table = create_table(capacity);
 
-    for (int i = 0; i < table_size; i++)
+    for (int i = 0; i < capacity; i++)
     {
         append_symbol(table, keys[i], values[i]);
     }

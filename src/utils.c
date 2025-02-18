@@ -1,12 +1,50 @@
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "utils.h"
+
+void decimal_to_16_bit_binary_str(unsigned int dec, char buffer[], size_t buffer_size, size_t word_size)
+{
+    int index;
+    unsigned int max_value;
+
+    if (buffer == NULL)
+    {
+        fprintf(stderr, "Error: NULL buffer\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if ((max_value = (1u << word_size) - 1) < dec)
+    {
+        fprintf(stderr, "Error: Decimal value %u is too large for %d bits.\n", dec, WORD_SIZE);
+        exit(EXIT_FAILURE);
+    }
+
+    if (buffer_size != word_size + 1)
+    {
+        fprintf(stderr, "Error: Buffer size is invalid (expected %lu got %lu)\n", word_size + 1, buffer_size);
+        exit(EXIT_FAILURE);
+    }
+
+    memset(buffer, '0', word_size);
+    buffer[word_size] = '\0';
+    index = word_size - 1;
+
+    while (dec > 0 && index >= 0)
+    {
+        buffer[index] = (dec % 2) + '0';
+        dec = dec / 2;
+        index = index - 1;
+    }
+
+    return;
+}
 
 bool is_num_str(char *str)
 {
@@ -47,16 +85,6 @@ void num_str_to_decimal(char *num_str, long *num)
         fprintf(stderr, "Further characters after number: \"%s\"\n", endptr);
         exit(EXIT_FAILURE);
     }
-}
-
-void print_dec_as_binary(FILE *stream, long num, size_t word_size)
-{
-    for (int i = word_size - 1; i >= 0; i--)
-    {
-        fprintf(stream, "%ld", (num >> i) & 1);
-    }
-
-    fprintf(stream, "\n");
 }
 
 void *safe_malloc(size_t size)

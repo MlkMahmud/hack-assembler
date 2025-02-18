@@ -22,6 +22,8 @@ int *get_entry(Table *table, char *key);
 
 void free_table(Table *table);
 
+Table *init_comp_table();
+
 Table *init_symbol_table();
 
 void populate_symbol_table(FILE *stream, Table *symbol_table);

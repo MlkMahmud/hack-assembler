@@ -6,7 +6,7 @@
 
 void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table)
 {
-    int ram_addr = 16;
+    unsigned int ram_addr = 16;
     char buffer[MAX_INSTRUCTION_SIZE];
     int line_number = 1;
     int status;
@@ -17,9 +17,12 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
     {
         if (parse_a_command(buffer, instr) == 0)
         {
+            char bin[WORD_SIZE + 1];
+
             if (is_num_str(instr->value))
             {
                 long value = 0;
+
                 num_str_to_decimal(instr->value, &value);
 
                 if (value > HACK_MAX_INT)
@@ -30,7 +33,8 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
                     exit(EXIT_FAILURE);
                 }
 
-                print_dec_as_binary(out_stream, value, WORD_SIZE);
+                decimal_to_16_bit_binary_str(value, bin, sizeof(bin), WORD_SIZE);
+                fprintf(out_stream, "%s\n", bin);
                 free(instr->value);
                 continue;
             }
@@ -44,11 +48,13 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
             }
 
             symbol_value = get_entry(symbol_table, instr->value);
-            print_dec_as_binary(out_stream, *instr->value, WORD_SIZE);
+            decimal_to_16_bit_binary_str(*symbol_value, bin, sizeof(bin), WORD_SIZE);
+            fprintf(out_stream, "%s\n", bin);
             free(instr->value);
         }
         else if (parse_c_command(buffer, instr) == 0)
         {
+
             if (instr->dest)
                 free(instr->dest);
 

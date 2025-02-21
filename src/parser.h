@@ -19,12 +19,12 @@ typedef struct
 
 int get_next_instruction(FILE *stream, char *buffer);
 
-int parse_a_command(char *buffer, Instruction *instr);
+int parse_a_command(char *buffer, Instruction *instr, bool write_instr);
 
-int parse_c_command(char *buffer, Instruction *instr);
+int parse_c_command(char *buffer, Instruction *instr, bool write_instr);
 
 int parse_comment_or_whitespace(char *buffer);
 
-int parse_label_declaration(char *buffer, Instruction *instr);
+int parse_label_declaration(char *buffer, Instruction *instr, bool write_instr);
 
 #endif

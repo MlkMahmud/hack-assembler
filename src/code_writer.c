@@ -15,7 +15,7 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
 
     while ((status = get_next_instruction(src_stream, buffer)) != -1)
     {
-        if (parse_a_command(buffer, instr) == 0)
+        if (parse_a_command(buffer, instr, true) == 0)
         {
             char bin[WORD_SIZE + 1];
 
@@ -52,9 +52,8 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
             fprintf(out_stream, "%s\n", bin);
             free(instr->value);
         }
-        else if (parse_c_command(buffer, instr) == 0)
+        else if (parse_c_command(buffer, instr, true) == 0)
         {
-
             if (instr->dest)
                 free(instr->dest);
 
@@ -62,16 +61,8 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
                 free(instr->jmp);
 
             free(instr->comp);
-
-            continue;
         }
-        else if (parse_label_declaration(buffer, instr) == 0)
-        {
-            free(instr->label);
-            line_number++;
-            continue;
-        }
-        else if (parse_comment_or_whitespace(buffer) == 0)
+        else if (parse_label_declaration(buffer, instr, false) == 0 || parse_comment_or_whitespace(buffer) == 0)
         {
             line_number++;
             continue;
@@ -82,6 +73,7 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
             fprintf(stderr, "SyntaxError: invalid syntax (%s) on line %d\n", buffer, line_number);
             exit(EXIT_FAILURE);
         }
+
         line_number++;
         buffer[0] = '\0';
     }

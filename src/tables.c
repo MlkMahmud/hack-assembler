@@ -118,29 +118,16 @@ void populate_symbol_table(FILE *stream, Table *table)
     int status;
     int current_instr_address = 0;
     int line_number = 1;
-    Instruction *instr = (Instruction *)safe_malloc(sizeof(Instruction));
+    Instruction *instr = safe_malloc(sizeof(Instruction));
 
     while ((status = get_next_instruction(stream, buffer)) != -1)
     {
-        if (parse_a_command(buffer, instr) == 0)
+        if (parse_a_command(buffer, instr, false) == 0 || parse_c_command(buffer, instr, false) == 0)
         {
-            free(instr->value);
             current_instr_address++;
         }
-        else if (parse_c_command(buffer, instr) == 0)
+        else if (parse_label_declaration(buffer, instr, true) == 0)
         {
-            if (instr->dest)
-                free(instr->dest);
-
-            if (instr->jmp)
-                free(instr->jmp);
-
-            free(instr->comp);
-            current_instr_address++;
-        }
-        else if (parse_label_declaration(buffer, instr) == 0)
-        {
-
             append_symbol(table, instr->label, current_instr_address);
             free(instr->label);
         }

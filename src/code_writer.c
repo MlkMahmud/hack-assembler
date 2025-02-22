@@ -81,7 +81,7 @@ void write_c_instruction(FILE *out_stream, Instruction *instr, Table *comp_table
     return;
 }
 
-void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table)
+void write_hack_instructions(FILE *src_stream, FILE *out_stream, Table *symbol_table)
 {
     int status;
     char buffer[MAX_INSTRUCTION_SIZE];
@@ -120,6 +120,9 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
         buffer[0] = '\0';
     }
 
+    free_table(comp_table);
+    free_table(dest_table);
+    free_table(jmp_table);
     free(instr);
     return;
 }

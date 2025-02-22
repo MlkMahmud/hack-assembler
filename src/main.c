@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     }
 
     fseek(src_stream, 0, SEEK_SET);
-    write_hack_commands(src_stream, out_stream, symbol_table);
+    write_hack_instructions(src_stream, out_stream, symbol_table);
     fclose(src_stream);
     fclose(out_stream);
     free(hack_filename);

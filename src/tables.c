@@ -91,7 +91,7 @@ Table *init_comp_table()
                     "A-D", "M-D", "D&A", "A&D", "D&M", "M&D", "D|A", "A|D", "D|M", "M|D"};
 
     int values[] = {42,  63, 58, 12, 48, 112, 13, 49, 113, 15, 51, 115, 31, 55, 119, 14, 50,
-                    114, 2,  2,  82, 82, 19,  83, 7,  71,  0,  0,  64,  64, 21, 21,  85, 85};
+                    114, 2,  2,  66, 66, 19,  83, 7,  71,  0,  0,  64,  64, 21, 21,  85, 85};
 
     Table *comp_table = init_table(keys, values, sizeof(values) / sizeof(int));
 

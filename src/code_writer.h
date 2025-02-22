@@ -10,6 +10,6 @@ void write_a_instruction(FILE *out_stream, Table *symbol_table, Instruction *ins
 
 void write_c_instruction(FILE *outstream, Instruction *instr, Table *comp_table, Table *dest_table, Table *jmp_table);
 
-void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table);
+void write_hack_instructions(FILE *src_stream, FILE *out_stream, Table *symbol_table);
 
 #endif

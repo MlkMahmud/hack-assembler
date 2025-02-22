@@ -4,6 +4,44 @@
 #include "parser.h"
 #include "utils.h"
 
+void write_a_instruction(FILE *out_stream, Table *symbol_table, Instruction *instr, unsigned int *ram_addr)
+{
+    char hack_instruction[WORD_SIZE + 1];
+
+    if (is_num_str(instr->value))
+    {
+        long value = 0;
+
+        num_str_to_decimal(instr->value, &value);
+
+        if (value > HACK_MAX_INT)
+        {
+            fprintf(stderr, "Error: The input value %ld exceeds the maximum allowed limit of %d.\n", value,
+                    HACK_MAX_INT);
+            exit(EXIT_FAILURE);
+        }
+
+        decimal_to_16_bit_binary_str(value, hack_instruction, sizeof(hack_instruction), WORD_SIZE);
+        fprintf(out_stream, "%s\n", hack_instruction);
+        free(instr->value);
+        return;
+    }
+
+    int *symbol_value = get_entry(symbol_table, instr->value);
+
+    if (symbol_value == NULL)
+    {
+        append_symbol(symbol_table, instr->value, *ram_addr);
+        *ram_addr += 1;
+    }
+
+    symbol_value = get_entry(symbol_table, instr->value);
+    decimal_to_16_bit_binary_str(*symbol_value, hack_instruction, sizeof(hack_instruction), WORD_SIZE);
+    fprintf(out_stream, "%s\n", hack_instruction);
+    free(instr->value);
+    return;
+}
+
 void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table)
 {
     unsigned int ram_addr = 16;
@@ -17,40 +55,7 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
     {
         if (parse_a_command(buffer, instr, true) == 0)
         {
-            char bin[WORD_SIZE + 1];
-
-            if (is_num_str(instr->value))
-            {
-                long value = 0;
-
-                num_str_to_decimal(instr->value, &value);
-
-                if (value > HACK_MAX_INT)
-                {
-                    fprintf(stderr,
-                            "Error: The input value %ld exceeds the maximum allowed limit of %d. (Error at line %d)\n",
-                            value, HACK_MAX_INT, line_number);
-                    exit(EXIT_FAILURE);
-                }
-
-                decimal_to_16_bit_binary_str(value, bin, sizeof(bin), WORD_SIZE);
-                fprintf(out_stream, "%s\n", bin);
-                free(instr->value);
-                continue;
-            }
-
-            int *symbol_value = get_entry(symbol_table, instr->value);
-
-            if (symbol_value == NULL)
-            {
-                append_symbol(symbol_table, instr->value, ram_addr);
-                ram_addr++;
-            }
-
-            symbol_value = get_entry(symbol_table, instr->value);
-            decimal_to_16_bit_binary_str(*symbol_value, bin, sizeof(bin), WORD_SIZE);
-            fprintf(out_stream, "%s\n", bin);
-            free(instr->value);
+            write_a_instruction(out_stream, symbol_table, instr, &ram_addr);
         }
         else if (parse_c_command(buffer, instr, true) == 0)
         {

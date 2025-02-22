@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "code_writer.h"
 #include "parser.h"
@@ -42,14 +43,56 @@ void write_a_instruction(FILE *out_stream, Table *symbol_table, Instruction *ins
     return;
 }
 
+void write_c_instruction(FILE *out_stream, Instruction *instr, Table *comp_table, Table *dest_table, Table *jmp_table)
+{
+    char hack_instruction[WORD_SIZE + 1];
+    char comp_bits[8];
+    char dest_bits[] = "000";
+    char jump_bits[] = "000";
+    char leading_bits[] = "111";
+    size_t leading_bits_len = sizeof(leading_bits) / sizeof(char);
+
+    int *comp_value = get_entry(comp_table, instr->comp);
+    decimal_to_16_bit_binary_str(*comp_value, comp_bits, sizeof(comp_bits), sizeof(comp_bits) - 1);
+    free(instr->comp);
+
+    if (instr->dest)
+    {
+        int *dest_value = get_entry(dest_table, instr->dest);
+        decimal_to_16_bit_binary_str(*dest_value, dest_bits, sizeof(dest_bits), sizeof(dest_bits) - 1);
+        free(instr->dest);
+    }
+
+    if (instr->jmp)
+    {
+        int *jmp_value = get_entry(jmp_table, instr->jmp);
+        decimal_to_16_bit_binary_str(*jmp_value, jump_bits, sizeof(jump_bits), sizeof(jump_bits) - 1);
+        free(instr->jmp);
+    }
+
+    strncpy(hack_instruction, leading_bits, leading_bits_len);
+    hack_instruction[leading_bits_len] = '\0';
+
+    strcat(hack_instruction, comp_bits);
+    strcat(hack_instruction, dest_bits);
+    strcat(hack_instruction, jump_bits);
+
+    fprintf(out_stream, "%s\n", hack_instruction);
+    return;
+}
+
 void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table)
 {
-    unsigned int ram_addr = 16;
-    char buffer[MAX_INSTRUCTION_SIZE];
-    int line_number = 1;
     int status;
+    char buffer[MAX_INSTRUCTION_SIZE];
+
+    Table *comp_table = init_comp_table();
+    Table *dest_table = init_dest_table();
+    Table *jmp_table = init_jmp_table();
 
     Instruction *instr = safe_malloc(sizeof(Instruction));
+    int line_number = 1;
+    unsigned int ram_addr = 16;
 
     while ((status = get_next_instruction(src_stream, buffer)) != -1)
     {
@@ -59,13 +102,7 @@ void write_hack_commands(FILE *src_stream, FILE *out_stream, Table *symbol_table
         }
         else if (parse_c_command(buffer, instr, true) == 0)
         {
-            if (instr->dest)
-                free(instr->dest);
-
-            if (instr->jmp)
-                free(instr->jmp);
-
-            free(instr->comp);
+            write_c_instruction(out_stream, instr, comp_table, dest_table, jmp_table);
         }
         else if (parse_label_declaration(buffer, instr, false) == 0 || parse_comment_or_whitespace(buffer) == 0)
         {

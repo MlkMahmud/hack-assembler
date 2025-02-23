@@ -22,15 +22,7 @@ int *get_entry(Table *table, char *key);
 
 void free_table(Table *table);
 
-Table *init_dest_table();
-
-Table *init_table(char *keys[], int values[], int capacity);
-
-Table *init_comp_table();
-
-Table *init_jmp_table();
-
-Table *init_symbol_table();
+Table *init_table(char *keys[], int values[], int initial_capacity);
 
 void populate_symbol_table(FILE *stream, Table *symbol_table);
 

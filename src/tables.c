@@ -72,60 +72,14 @@ void free_table(Table *table)
     free(table);
 }
 
-Table *init_table(char *keys[], int values[], int capacity)
+Table *init_table(char *keys[], int values[], int initial_capacity)
 {
-    Table *table = create_table(capacity);
+    Table *table = create_table(initial_capacity);
 
-    for (int i = 0; i < capacity; i++)
+    for (int i = 0; i < initial_capacity; i++)
     {
         append_symbol(table, keys[i], values[i]);
     }
-
-    return table;
-}
-
-Table *init_comp_table()
-{
-    char *keys[] = {"0",   "1",   "-1",  "D",   "A",   "M",   "!D",  "!A",  "!M",  "-D",  "-A",  "-M",
-                    "D+1", "A+1", "M+1", "D-1", "A-1", "M-1", "D+A", "A+D", "D+M", "M+D", "D-A", "D-M",
-                    "A-D", "M-D", "D&A", "A&D", "D&M", "M&D", "D|A", "A|D", "D|M", "M|D"};
-
-    int values[] = {42,  63, 58, 12, 48, 112, 13, 49, 113, 15, 51, 115, 31, 55, 119, 14, 50,
-                    114, 2,  2,  66, 66, 19,  83, 7,  71,  0,  0,  64,  64, 21, 21,  85, 85};
-
-    Table *comp_table = init_table(keys, values, sizeof(values) / sizeof(int));
-
-    return comp_table;
-}
-
-Table *init_dest_table()
-{
-    char *keys[] = {"M", "D", "DM", "MD", "A", "AM", "MA", "AD", "DA", "ADM", "AMD", "MDA", "MAD", "DAM", "DMA"};
-    int values[] = {1, 2, 3, 3, 4, 5, 5, 6, 6, 7, 7, 7, 7, 7, 7};
-
-    Table *dest_table = init_table(keys, values, sizeof(values) / sizeof(int));
-
-    return dest_table;
-}
-
-Table *init_jmp_table()
-{
-    char *keys[] = {"JGT", "JEQ", "JGE", "JLT", "JNE", "JLE", "JMP"};
-    int values[] = {1, 2, 3, 4, 5, 6, 7};
-
-    Table *jmp_table = init_table(keys, values, sizeof(values) / sizeof(int));
-
-    return jmp_table;
-}
-
-Table *init_symbol_table()
-{
-    char *keys[] = {"R0",  "R1",  "R2",  "R3",  "R4",     "R5",  "R6", "R7",  "R8",  "R9",   "R10", "R11",
-                    "R12", "R13", "R14", "R15", "SCREEN", "KBD", "SP", "LCL", "ARG", "THIS", "THAT"};
-
-    int values[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16384, 24576, 0, 1, 2, 3, 4};
-
-    Table *table = init_table(keys, values, sizeof(values) / sizeof(int));
 
     return table;
 }

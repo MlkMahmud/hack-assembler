@@ -86,9 +86,20 @@ void write_hack_instructions(FILE *src_stream, FILE *out_stream, Table *symbol_t
     int status;
     char buffer[MAX_INSTRUCTION_SIZE];
 
-    Table *comp_table = init_comp_table();
-    Table *dest_table = init_dest_table();
-    Table *jmp_table = init_jmp_table();
+    Table *comp_table =
+        init_table((char *[34]){"0",   "1",   "-1",  "D",   "A",   "M",   "!D",  "!A",  "!M",  "-D",  "-A",  "-M",
+                                "D+1", "A+1", "M+1", "D-1", "A-1", "M-1", "D+A", "A+D", "D+M", "M+D", "D-A", "D-M",
+                                "A-D", "M-D", "D&A", "A&D", "D&M", "M&D", "D|A", "A|D", "D|M", "M|D"},
+                   (int[34]){42,  63, 58, 12, 48, 112, 13, 49, 113, 15, 51, 115, 31, 55, 119, 14, 50,
+                             114, 2,  2,  66, 66, 19,  83, 7,  71,  0,  0,  64,  64, 21, 21,  85, 85},
+                   (34));
+
+    Table *dest_table = init_table(
+        (char *[15]){"M", "D", "DM", "MD", "A", "AM", "MA", "AD", "DA", "ADM", "AMD", "MDA", "MAD", "DAM", "DMA"},
+        (int[15]){1, 2, 3, 3, 4, 5, 5, 6, 6, 7, 7, 7, 7, 7, 7}, 15);
+
+    Table *jmp_table =
+        init_table((char *[7]){"JGT", "JEQ", "JGE", "JLT", "JNE", "JLE", "JMP"}, (int[]){1, 2, 3, 4, 5, 6, 7}, 7);
 
     Instruction *instr = safe_malloc(sizeof(Instruction));
     int line_number = 1;

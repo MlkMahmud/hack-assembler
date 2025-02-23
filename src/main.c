@@ -34,7 +34,11 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    symbol_table = init_symbol_table();
+    symbol_table =
+        init_table((char *[23]){"R0",  "R1",  "R2",  "R3",  "R4",     "R5",  "R6", "R7",  "R8",  "R9",   "R10", "R11",
+                                "R12", "R13", "R14", "R15", "SCREEN", "KBD", "SP", "LCL", "ARG", "THIS", "THAT"},
+                   (int[23]){0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16384, 24576, 0, 1, 2, 3, 4}, 23);
+
     populate_symbol_table(src_stream, symbol_table);
 
     if ((hack_filename = generate_hack_filename(argv[1])) == NULL)

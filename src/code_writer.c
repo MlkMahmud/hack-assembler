@@ -22,7 +22,7 @@ void write_a_instruction(FILE *out_stream, Table *symbol_table, Instruction *ins
             exit(EXIT_FAILURE);
         }
 
-        decimal_to_16_bit_binary_str(value, hack_instruction, sizeof(hack_instruction), WORD_SIZE);
+        decimal_to_binary_str(value, hack_instruction, sizeof(hack_instruction), WORD_SIZE);
         fprintf(out_stream, "%s\n", hack_instruction);
         free(instr->value);
         return;
@@ -37,7 +37,7 @@ void write_a_instruction(FILE *out_stream, Table *symbol_table, Instruction *ins
     }
 
     symbol_value = get_entry(symbol_table, instr->value);
-    decimal_to_16_bit_binary_str(*symbol_value, hack_instruction, sizeof(hack_instruction), WORD_SIZE);
+    decimal_to_binary_str(*symbol_value, hack_instruction, sizeof(hack_instruction), WORD_SIZE);
     fprintf(out_stream, "%s\n", hack_instruction);
     free(instr->value);
     return;
@@ -53,20 +53,20 @@ void write_c_instruction(FILE *out_stream, Instruction *instr, Table *comp_table
     size_t leading_bits_len = sizeof(leading_bits) / sizeof(char);
 
     int *comp_value = get_entry(comp_table, instr->comp);
-    decimal_to_16_bit_binary_str(*comp_value, comp_bits, sizeof(comp_bits), sizeof(comp_bits) - 1);
+    decimal_to_binary_str(*comp_value, comp_bits, sizeof(comp_bits), sizeof(comp_bits) - 1);
     free(instr->comp);
 
     if (instr->dest)
     {
         int *dest_value = get_entry(dest_table, instr->dest);
-        decimal_to_16_bit_binary_str(*dest_value, dest_bits, sizeof(dest_bits), sizeof(dest_bits) - 1);
+        decimal_to_binary_str(*dest_value, dest_bits, sizeof(dest_bits), sizeof(dest_bits) - 1);
         free(instr->dest);
     }
 
     if (instr->jmp)
     {
         int *jmp_value = get_entry(jmp_table, instr->jmp);
-        decimal_to_16_bit_binary_str(*jmp_value, jump_bits, sizeof(jump_bits), sizeof(jump_bits) - 1);
+        decimal_to_binary_str(*jmp_value, jump_bits, sizeof(jump_bits), sizeof(jump_bits) - 1);
         free(instr->jmp);
     }
 

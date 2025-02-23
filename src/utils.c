@@ -9,7 +9,7 @@
 
 #include "utils.h"
 
-void decimal_to_16_bit_binary_str(unsigned int dec, char buffer[], size_t buffer_size, size_t word_size)
+void decimal_to_binary_str(unsigned int dec, char buffer[], size_t buffer_size, size_t word_size)
 {
     int index;
     unsigned int max_value;
